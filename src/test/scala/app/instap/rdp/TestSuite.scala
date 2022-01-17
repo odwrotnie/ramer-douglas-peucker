@@ -1,5 +1,5 @@
 package app.instap
-package ramerdouglaspeucker
+package rdp
 
 import org.scalacheck.ScalacheckShapeless
 import org.scalatest._

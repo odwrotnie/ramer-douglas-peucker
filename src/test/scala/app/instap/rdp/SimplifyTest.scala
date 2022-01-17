@@ -1,8 +1,8 @@
 package app.instap
-package ramerdouglaspeucker
+package rdp
 
-final class ExampleSuite extends TestSuite {
-  test("hello world") {
+final class SimplifyTest extends TestSuite {
+  test("Simplify should simplify a to 5 elements") {
 
     val pointList = List(
       new Point(0.0, 0.0),
@@ -17,7 +17,7 @@ final class ExampleSuite extends TestSuite {
       new Point(9.0, 9.0),
     )
 
-    val pointListOut = RDP.ramerDouglasPeucker(pointList, 1.0)
+    val pointListOut = RamerDouglasPeucker(pointList, 1.0).out
 
     pointListOut shouldBe List(
       Point(0.0, 0.0),
