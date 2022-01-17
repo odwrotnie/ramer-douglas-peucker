@@ -6,6 +6,7 @@ import scala.collection.mutable.ListBuffer
 final case class RamerDouglasPeucker(pointList: List[Point], epsilon: Double) {
   require(pointList.size >= 2, "Not enough points to simplify")
 
+  // TODO Rewrite to foldLeft (we do not want to store all of those points)
   // Find the point with the maximum distance from line between the start and end
   val pointToDistanceMap: Map[Point, Double] = pointList map { point =>
     point -> point.perpendicularDistance(pointList.head, pointList.last);
