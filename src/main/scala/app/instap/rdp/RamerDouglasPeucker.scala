@@ -1,37 +1,54 @@
 package app.instap
 package rdp
 
-import scala.collection.mutable.ListBuffer
+import scala.annotation.tailrec
 
-final case class RamerDouglasPeucker(pointList: List[Point], epsilon: Double) {
-  require(pointList.size >= 2, "Not enough points to simplify")
-
-  // TODO Rewrite to foldLeft (we do not want to store all of those points)
+final case class RamerDouglasPeucker(pointList: Seq[Point]) {
   // Find the point with the maximum distance from line between the start and end
-  val pointToDistanceMap: Map[Point, Double] = pointList map { point =>
-    point -> point.perpendicularDistance(pointList.head, pointList.last);
-  } toMap
+  lazy val (farthestPoint, maxDistance) =
+    (pointList.headOption, pointList.lastOption) match {
+      case (Some(head), Some(last)) =>
+        // Find the point with the maximum distance from line between the start and end
+        pointList.foldLeft((head, 0.0)) {
+          case (acc @ (_, maxDistance), point) =>
+            val distance = point.perpendicularDistance(head, last)
+            if (distance > maxDistance) (point, distance) else acc
+        }
+    }
 
-  val (farthestPoint, maxDistance) = pointToDistanceMap.maxBy(_._2)
+  // @tailrec
+  def simplifiedByGreatestDistance(epsilon: Double): Seq[Point] =
+    (pointList.headOption, pointList.lastOption) match {
+      case (Some(head), Some(last)) =>
+        // If max distance is greater than epsilon, recursively simplify
+        if (maxDistance > epsilon) {
+          val (firstLine, lastLine) = pointList.splitAt(pointList.indexOf(farthestPoint))
+          val a: Seq[Point] =
+            RamerDouglasPeucker(firstLine).simplifiedByGreatestDistance(epsilon)
+          val b: Seq[Point] = RamerDouglasPeucker(lastLine).simplifiedByGreatestDistance(epsilon)
+          a.dropRight(1) ++ b
+        }
+        else List(head, last)
+      case _ => pointList
+    }
 
-  private val index = pointList.indexOf(farthestPoint)
-
-  // If max distance is greater than epsilon, recursively simplify
-  lazy val out: List[Point] = if (maxDistance > epsilon) {
-
-    val out = ListBuffer[Point]()
-
-    val firstLine = pointList.slice(0, index + 1)
-    val lastLine = pointList.slice(index, pointList.size)
-    val recResults1: List[Point] = RamerDouglasPeucker(firstLine, epsilon).out
-    val recResults2: List[Point] = RamerDouglasPeucker(lastLine, epsilon).out
-
-    // build the result list
-    out.addAll(recResults1.slice(0, recResults1.size - 1));
-    out.addAll(recResults2);
-    if (out.size < 2) throw new RuntimeException("Problem assembling output");
-    out.toList
+  // @tailrec
+  def simplifiedByCount(count: Double): Seq[Point] = {
+    (pointList.headOption, pointList.lastOption) match {
+      case (Some(head), Some(last)) =>
+        // If size greater than count, recursively simplify
+        if (count > 2 && pointList.size > count - 2) {
+          val (firstLine, lastLine) = pointList.splitAt(pointList.indexOf(farthestPoint))
+          val a: Seq[Point] = RamerDouglasPeucker(firstLine).simplifiedByCount(
+            (count * firstLine.size / pointList.size) - 1
+          )
+          val b: Seq[Point] = RamerDouglasPeucker(lastLine).simplifiedByCount(
+            (count * lastLine.size / pointList.size) // - 1
+          )
+          a.dropRight(1) ++ b
+        }
+        else List(head, last)
+      case _ => pointList
+    }
   }
-  else
-    List(pointList.head, pointList.last)
 }
