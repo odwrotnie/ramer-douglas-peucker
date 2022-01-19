@@ -99,7 +99,7 @@ final class SimplifyByCountTest extends TestSuite {
       count <- (3 to 5).map(Math.pow(10, _).toInt)
     } yield {
       val pointList = (1 to count).map(_ => new Point(Random.nextDouble(), Random.nextDouble()))
-      val simplified = RamerDouglasPeucker(pointList).simplifiedByCountWithBorders(limit)
+      val simplified = RamerDouglasPeucker(pointList).simplifiedByCount(limit)
       println("limit: " + limit + " count: " + count)
       simplified.head shouldBe pointList.head
       simplified.last shouldBe pointList.last

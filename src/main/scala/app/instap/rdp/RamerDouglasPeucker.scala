@@ -32,35 +32,33 @@ final case class RamerDouglasPeucker(pointList: Seq[Point]) {
       case _ => pointList
     }
 
-  def simplifiedByCountWithBorders(count: Int): Seq[Point] =
-    (pointList.headOption, pointList.lastOption) match {
-      case (Some(h), Some(e)) =>
-        Seq(h) ++ simplifiedByCount(count).tail.dropRight(1) ++ Seq(e)
-      case _ => simplifiedByCount(count)
-    }
   // @tailrec
-  def simplifiedByCount(count: Int): Seq[Point] =
-    // println(s"Simplify $pointList by count: $count")
-    (pointList.headOption, pointList.lastOption, count) match {
-      case _ if count == 0 => Seq.empty
-      case _ if count == pointList.size => pointList
-      case (Some(head), _, 1) => farthestPoint :: Nil
-      case (Some(head), Some(tail), 2) => head :: tail :: Nil
-      case _ if pointList.size <= 2 => pointList
-      case (Some(head), Some(last), 3) => head :: farthestPoint :: last :: Nil
-      case _ =>
-        val (leftLine, rightLine) = pointList.splitAt(pointList.indexOf(farthestPoint)) // Only right side has the farthest point
-        // println("Left: " + leftLine)
-        // println("Right: " + rightLine)
-        val leftCount = Math.round(count * leftLine.size / pointList.size).toInt // Neceessary?
-        val rightCount = count - leftCount
-        // println(
-        //   s"Simplifying ${pointList.size} points to $leftCount + $rightCount, max: $farthestPoint"
-        // )
-        val a: Seq[Point] = RamerDouglasPeucker(leftLine).simplifiedByCount(leftCount)
-        val b: Seq[Point] = RamerDouglasPeucker(rightLine).simplifiedByCount(rightCount)
-        // println(s"A: $a")
-        // println(s"B: $b")
-        a ++ b
+  def simplifiedByCount(count: Double): Seq[Point] =
+    if (pointList.size <= count) {
+      pointList
+    }
+    else if (count < 3) {
+      List(pointList.headOption.get, pointList.lastOption.get)
+    }
+    else {
+      val (firstLine1, lastLine) = pointList.splitAt(pointList.indexOf(farthestPoint))
+      val firstLine = firstLine1 ++ List(farthestPoint)
+      val (s1, s2) = (firstLine.size - 2, lastLine.size - 2)
+      if (s1 + s2 > pointList.size)
+        throw new IllegalArgumentException
+      val (c1, c2) =
+        if (s1 >= s2)
+          (math.ceil(s1 * (count - 3) / (s1 + s2)), math.floor(s2 * (count - 3) / (s1 + s2)))
+        else (math.floor(s1 * (count - 3) / (s1 + s2)), math.ceil(s2 * (count - 3) / (s1 + s2)))
+      println(
+        s"size=${pointList.size} count: $count, far=$farthestPoint, max=$maxDistance, size1=${firstLine.size}, size2=${lastLine.size}, c1=$c1, c2=$c2"
+      )
+      val a: Seq[Point] = RamerDouglasPeucker(firstLine).simplifiedByCount(
+        c1 + 2
+      )
+      val b: Seq[Point] = RamerDouglasPeucker(lastLine).simplifiedByCount(
+        c2 + 2
+      )
+      a.dropRight(1) ++ b
     }
 }
