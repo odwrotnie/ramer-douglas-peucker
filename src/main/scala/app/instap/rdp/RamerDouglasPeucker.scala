@@ -32,6 +32,12 @@ final case class RamerDouglasPeucker(pointList: Seq[Point]) {
       case _ => pointList
     }
 
+  def simplifiedByCountWithBorders(count: Int): Seq[Point] =
+    (pointList.headOption, pointList.lastOption) match {
+      case (Some(h), Some(e)) =>
+        Seq(h) ++ simplifiedByCount(count).tail.dropRight(1) ++ Seq(e)
+      case _ => simplifiedByCount(count)
+    }
   // @tailrec
   def simplifiedByCount(count: Int): Seq[Point] =
     // println(s"Simplify $pointList by count: $count")

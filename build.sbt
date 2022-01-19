@@ -43,5 +43,8 @@ lazy val dependencies = Seq(
     org.scalatest.scalatest,
     org.scalatestplus.`scalacheck-1-15`,
     org.typelevel.`discipline-scalatest`,
+    // "org.plotly-scala" %% "plotly-core" % "0.8.2",
+    // "org.plotly-scala" %% "plotly-render" % "0.8.2",
+    // "org.plotly-scala" %% "plotly-almond" % "0.8.2",
   ).map(_ % Test),
 )
