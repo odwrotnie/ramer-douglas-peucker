@@ -9,7 +9,7 @@ final case class RamerDouglasPeucker(pointList: Seq[Point]) {
     (pointList.headOption, pointList.lastOption) match {
       case (Some(head), Some(last)) =>
         // Find the point with the maximum distance from line between the start and end
-        pointList.foldLeft((head, 0.0)) {
+        pointList.tail.dropRight(1).foldLeft((pointList.tail.head, 0.0)) {
           case (acc @ (_, maxDistance), point) =>
             val distance = point.perpendicularDistance(head, last)
             if (distance > maxDistance) (point, distance) else acc
@@ -34,18 +34,12 @@ final case class RamerDouglasPeucker(pointList: Seq[Point]) {
 
   // @tailrec
   def simplifiedByCount(count: Double): Seq[Point] =
-    if (pointList.size <= count) {
-      pointList
-    }
-    else if (count < 3) {
-      List(pointList.headOption.get, pointList.lastOption.get)
-    }
+    if (pointList.size <= count) pointList
+    else if (count < 3) List(pointList.headOption.get, pointList.lastOption.get)
     else {
       val (firstLine1, lastLine) = pointList.splitAt(pointList.indexOf(farthestPoint))
-      val firstLine = firstLine1 ++ List(farthestPoint)
+      val firstLine = firstLine1.appended(farthestPoint)
       val (s1, s2) = (firstLine.size - 2, lastLine.size - 2)
-      if (s1 + s2 > pointList.size)
-        throw new IllegalArgumentException
       val (c1, c2) =
         if (s1 >= s2)
           (math.ceil(s1 * (count - 3) / (s1 + s2)), math.floor(s2 * (count - 3) / (s1 + s2)))
@@ -53,12 +47,8 @@ final case class RamerDouglasPeucker(pointList: Seq[Point]) {
       println(
         s"size=${pointList.size} count: $count, far=$farthestPoint, max=$maxDistance, size1=${firstLine.size}, size2=${lastLine.size}, c1=$c1, c2=$c2"
       )
-      val a: Seq[Point] = RamerDouglasPeucker(firstLine).simplifiedByCount(
-        c1 + 2
-      )
-      val b: Seq[Point] = RamerDouglasPeucker(lastLine).simplifiedByCount(
-        c2 + 2
-      )
+      val a: Seq[Point] = RamerDouglasPeucker(firstLine).simplifiedByCount(c1 + 2)
+      val b: Seq[Point] = RamerDouglasPeucker(lastLine).simplifiedByCount(c2 + 2)
       a.dropRight(1) ++ b
     }
 }
